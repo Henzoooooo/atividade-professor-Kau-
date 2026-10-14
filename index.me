@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria Interativa (Tudo em Um)</title>
+    
+    <!-- 1. O CSS ENTRA AQUI DENTRO DA TAG <style> -->
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --primary-color: #007bff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --card-bg: #1e1e1e;
+            --primary-color: #3700b3;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .logo { font-weight: bold; font-size: 1.2rem; }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .controls {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .preview-container {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        #main-preview {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 5px;
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+
+        #main-preview:hover { transform: scale(1.02); }
+
+        .hidden { display: none !important; }
+
+        /* --- ESTILOS DO MODAL (TELA CHEIA) --- */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 85%;
+            max-height: 80%;
+            border-radius: 4px;
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover { color: #bbb; }
+
+        #caption {
+            margin-top: 15px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        footer { text-align: center; padding: 20px; background-color: var(--card-bg); }
+    </style>
+</head>
+<body>
+
+    <!-- 2. A ESTRUTURA DO HTML CONTINUA IGUAL -->
+    <header>
+        <div class="logo">GaleriaIA</div>
+        <button id="theme-toggle">Alternar Tema 🌓</button>
+    </header>
+
+    <main>
+        <section class="controls">
+            <h2>Escolha uma imagem para visualizar:</h2>
+            <div class="button-group">
+                <button class="nav-btn" data-img="https://picsum.photos">Imagem 1 (Montanhas)</button>
+                <button class="nav-btn" data-img="https://picsum.photos">Imagem 2 (Vale)</button>
+                <button class="nav-btn" data-img="https://picsum.photos">Imagem 3 (Canyon)</button>
+            </div>
+
+            <div class="preview-container">
+                <p id="placeholder-text">Clique em um dos botões acima para carregar uma imagem.</p>
+                <img id="main-preview" src="" alt="Previa" class="hidden">
+            </div>
+        </section>
+    </main>
+
+    <div id="image-modal" class="modal hidden">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="expanded-img">
+        <div id="caption">Clique fora da imagem ou no X para fechar</div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 - Criado com Inteligência Artificial</p>
+    </footer>
+
+    <!-- 3. O JAVASCRIPT ENTRA AQUI ANTES DE FECHAR O CORPO DO SITE -->
+    <script>
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const mainPreview = document.getElementById('main-preview');
+        const placeholderText = document.getElementById('placeholder-text');
+
+        const modal = document.getElementById('image-modal');
+        const expandedImg = document.getElementById('expanded-img');
+        const closeModalBtn = document.querySelector('.close-modal');
+
+        // Alternar Tema
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        // Evento dos 3 botões para mostrar a imagem
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const imageSrc = button.getAttribute('data-img');
+                mainPreview.src = imageSrc;
+                mainPreview.classList.remove('hidden');
+                placeholderText.classList.add('hidden');
+            });
+        });
+
+        // Ampliar Imagem
+        mainPreview.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            expandedImg.src = mainPreview.src;
+        });
+
+        // Fechar Imagem
+        const fecharModal = () => {
+            modal.classList.add('hidden');
+        };
+
+        closeModalBtn.addEventListener('click', fecharModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                fecharModal();
+            }
+        });
+    </script>
+</body>
+</html>
